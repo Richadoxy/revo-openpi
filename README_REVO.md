@@ -45,10 +45,23 @@ action projection layers that depend on the 32D upstream action size are kept ra
 ## Commands
 
 ```bash
+uv sync
+
 uv run scripts/compute_norm_stats.py --config-name pi05_revo_revo3_56d
 
 XLA_PYTHON_CLIENT_MEM_FRACTION=0.9 \
 uv run scripts/train.py pi05_revo_revo3_56d \
   --exp-name=revo3_pick_place_test \
   --overwrite
+```
+
+## Smoke Test
+
+Use the small debug config to validate the full Revo data pipeline without loading the full pi05 checkpoint:
+
+```bash
+uv run scripts/compute_norm_stats.py --config-name debug_pi05_revo_data --max-frames 32
+
+JAX_PLATFORM_NAME=cpu \
+uv run scripts/train.py debug_pi05_revo_data --overwrite
 ```

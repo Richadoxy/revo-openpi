@@ -258,6 +258,33 @@ class TrainConfig:
 
 _CONFIGS = [
     TrainConfig(
+        name="debug_pi05_revo_data",
+        model=pi0_config.Pi0Config(
+            pi05=True,
+            action_dim=56,
+            action_horizon=2,
+            max_token_len=64,
+            paligemma_variant="dummy",
+            action_expert_variant="dummy",
+        ),
+        data=LeRobotRevoDataConfig(
+            repo_id=(
+                "/home/xyd/datasets/original-revomate_revo3_pick_and_place/original/"
+                "lerobot_v21/revomate_revo3_mit_3cam_test"
+            ),
+            assets=AssetsConfig(asset_id="revomate_revo3_mit_3cam_test"),
+            base_config=DataConfig(prompt_from_task=True),
+            extra_delta_transform=False,
+        ),
+        batch_size=1,
+        num_workers=0,
+        num_train_steps=2,
+        save_interval=2,
+        overwrite=True,
+        exp_name="debug_pi05_revo_data",
+        wandb_enabled=False,
+    ),
+    TrainConfig(
         name="pi05_revo_revo3_56d",
         model=pi0_config.Pi0Config(pi05=True, action_dim=56, action_horizon=50, max_token_len=256),
         data=LeRobotRevoDataConfig(
@@ -265,6 +292,7 @@ _CONFIGS = [
                 "/home/xyd/datasets/original-revomate_revo3_pick_and_place/original/"
                 "lerobot_v21/revomate_revo3_mit_3cam_test"
             ),
+            assets=AssetsConfig(asset_id="revomate_revo3_mit_3cam_test"),
             base_config=DataConfig(prompt_from_task=True),
             extra_delta_transform=False,
         ),
