@@ -18,6 +18,7 @@ import openpi.models.pi0_config as pi0_config
 import openpi.models.tokenizer as _tokenizer
 import openpi.policies.revo_policy as revo_policy
 import openpi.shared.download as _download
+import openpi.shared.nnx_utils as nnx_utils
 import openpi.shared.normalize as _normalize
 import openpi.training.optimizer as _optimizer
 import openpi.training.weight_loaders as weight_loaders
@@ -309,6 +310,88 @@ _CONFIGS = [
         ),
     ),
     TrainConfig(
+        name="pi05_revotron_zm_56d",
+        model=pi0_config.Pi0Config(pi05=True, action_dim=56, action_horizon=50, max_token_len=256),
+        data=LeRobotRevoDataConfig(
+            repo_id="/home/phoebe/Brainco/pi05_datasets/revotron_mit_revo3_mit_3cam_zm.6.29.18.29",
+            assets=AssetsConfig(asset_id="revotron_mit_revo3_mit_3cam_6_29"),
+            base_config=DataConfig(prompt_from_task=True),
+            extra_delta_transform=False,
+        ),
+        weight_loader=weight_loaders.PartialCheckpointWeightLoader(
+            "gs://openpi-assets/checkpoints/pi05_base/params"
+        ),
+        num_train_steps=30_000,
+        batch_size=8,
+        num_workers=4,
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=1_000,
+            peak_lr=5e-5,
+            decay_steps=30_000,
+            decay_lr=5e-6,
+        ),
+    ),
+    TrainConfig(
+        name="pi05_revotron_zm_56d_action_expert",
+        model=pi0_config.Pi0Config(pi05=True, action_dim=56, action_horizon=50, max_token_len=256),
+        data=LeRobotRevoDataConfig(
+            repo_id="/home/phoebe/Brainco/pi05_datasets/revotron_mit_revo3_mit_3cam_zm.6.29.18.29",
+            assets=AssetsConfig(asset_id="revotron_mit_revo3_mit_3cam_6_29"),
+            base_config=DataConfig(prompt_from_task=True),
+            extra_delta_transform=False,
+        ),
+        weight_loader=weight_loaders.PartialCheckpointWeightLoader(
+            "gs://openpi-assets/checkpoints/pi05_base/params"
+        ),
+        freeze_filter=nnx.Not(
+            nnx.Any(
+                nnx_utils.PathRegex(".*PaliGemma.*llm.*_1.*"),
+                nnx_utils.PathRegex(".*action_in_proj.*"),
+                nnx_utils.PathRegex(".*action_out_proj.*"),
+                nnx_utils.PathRegex(".*time_mlp.*"),
+            )
+        ),
+        num_train_steps=30_000,
+        batch_size=8,
+        num_workers=4,
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=1_000,
+            peak_lr=5e-5,
+            decay_steps=30_000,
+            decay_lr=5e-6,
+        ),
+    ),
+    TrainConfig(
+        name="pi05_revotron_zm_56d_action_expert_delta",
+        model=pi0_config.Pi0Config(pi05=True, action_dim=56, action_horizon=50, max_token_len=256),
+        data=LeRobotRevoDataConfig(
+            repo_id="/home/phoebe/Brainco/pi05_datasets/revotron_mit_revo3_mit_3cam_zm.6.29.18.29",
+            assets=AssetsConfig(asset_id="revotron_mit_revo3_mit_3cam_6_29_delta"),
+            base_config=DataConfig(prompt_from_task=True),
+            extra_delta_transform=True,
+        ),
+        weight_loader=weight_loaders.PartialCheckpointWeightLoader(
+            "gs://openpi-assets/checkpoints/pi05_base/params"
+        ),
+        freeze_filter=nnx.Not(
+            nnx.Any(
+                nnx_utils.PathRegex(".*PaliGemma.*llm.*_1.*"),
+                nnx_utils.PathRegex(".*action_in_proj.*"),
+                nnx_utils.PathRegex(".*action_out_proj.*"),
+                nnx_utils.PathRegex(".*time_mlp.*"),
+            )
+        ),
+        num_train_steps=30_000,
+        batch_size=8,
+        num_workers=4,
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=1_000,
+            peak_lr=5e-5,
+            decay_steps=30_000,
+            decay_lr=5e-6,
+        ),
+    ),
+    TrainConfig(
         name="debug_pi05_revo",
         model=pi0_config.Pi0Config(
             pi05=True,
@@ -323,6 +406,84 @@ _CONFIGS = [
         num_train_steps=10,
         overwrite=True,
         exp_name="debug_pi05_revo",
+        wandb_enabled=False,
+    ),
+    TrainConfig(
+        name="debug_pi05_revo_lerobot",
+        model=pi0_config.Pi0Config(
+            pi05=True,
+            action_dim=56,
+            action_horizon=50,
+            max_token_len=256,
+            paligemma_variant="dummy",
+            action_expert_variant="dummy",
+        ),
+        data=LeRobotRevoDataConfig(
+            repo_id=(
+                "/home/xyd/datasets/original-revomate_revo3_pick_and_place/original/"
+                "lerobot_v21/revomate_revo3_mit_3cam_test"
+            ),
+            assets=AssetsConfig(
+                assets_dir="./assets/pi05_revo_revo3_56d",
+                asset_id="revomate_revo3_mit_3cam_test",
+            ),
+            base_config=DataConfig(prompt_from_task=True),
+            extra_delta_transform=False,
+        ),
+        batch_size=1,
+        num_workers=0,
+        save_interval=1,
+        num_train_steps=1,
+        overwrite=True,
+        exp_name="debug_pi05_revo_lerobot",
+        wandb_enabled=False,
+    ),
+    TrainConfig(
+        name="debug_pi05_revotron_zm_lerobot",
+        model=pi0_config.Pi0Config(
+            pi05=True,
+            action_dim=56,
+            action_horizon=50,
+            max_token_len=256,
+            paligemma_variant="dummy",
+            action_expert_variant="dummy",
+        ),
+        data=LeRobotRevoDataConfig(
+            repo_id="/home/phoebe/Brainco/pi05_datasets/revotron_mit_revo3_mit_3cam_zm.6.29.18.29",
+            assets=AssetsConfig(asset_id="revotron_mit_revo3_mit_3cam_6_29"),
+            base_config=DataConfig(prompt_from_task=True),
+            extra_delta_transform=False,
+        ),
+        batch_size=1,
+        num_workers=0,
+        save_interval=1,
+        num_train_steps=1,
+        overwrite=True,
+        exp_name="debug_pi05_revotron_zm_lerobot",
+        wandb_enabled=False,
+    ),
+    TrainConfig(
+        name="debug_pi05_revotron_zm_lerobot_delta",
+        model=pi0_config.Pi0Config(
+            pi05=True,
+            action_dim=56,
+            action_horizon=50,
+            max_token_len=256,
+            paligemma_variant="dummy",
+            action_expert_variant="dummy",
+        ),
+        data=LeRobotRevoDataConfig(
+            repo_id="/home/phoebe/Brainco/pi05_datasets/revotron_mit_revo3_mit_3cam_zm.6.29.18.29",
+            assets=AssetsConfig(asset_id="revotron_mit_revo3_mit_3cam_6_29_delta"),
+            base_config=DataConfig(prompt_from_task=True),
+            extra_delta_transform=True,
+        ),
+        batch_size=1,
+        num_workers=0,
+        save_interval=1,
+        num_train_steps=1,
+        overwrite=True,
+        exp_name="debug_pi05_revotron_zm_lerobot_delta",
         wandb_enabled=False,
     ),
 ]
